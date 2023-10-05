@@ -4,12 +4,35 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Player_Pawn.generated.h"
 
 UCLASS()
 class BETA_ARCADE_TEAM8_API APlayer_Pawn : public APawn
 {
 	GENERATED_BODY()
+
+private:
+
+	//TomC - static mesh component
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USkeletalMeshComponent> SkelMeshComp = nullptr;
+
+	//TomC - spring arm component
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USpringArmComponent> SpringArmComp = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	float ArmLength = 300;
+
+	//TomC - camera component
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UCameraComponent> CameraComp = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Player | Camera")
+	FVector DefaultCamlocation;
 
 public:
 	// Sets default values for this pawn's properties

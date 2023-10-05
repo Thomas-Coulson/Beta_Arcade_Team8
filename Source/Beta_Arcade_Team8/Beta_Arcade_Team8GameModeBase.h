@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Player_Pawn.h"
 #include "Beta_Arcade_Team8GameModeBase.generated.h"
 
 /**
@@ -14,4 +15,6 @@ class BETA_ARCADE_TEAM8_API ABeta_Arcade_Team8GameModeBase : public AGameModeBas
 {
 	GENERATED_BODY()
 	
+public:
+	ABeta_Arcade_Team8GameModeBase();
 };
