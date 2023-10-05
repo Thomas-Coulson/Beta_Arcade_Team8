@@ -9,6 +9,10 @@ APlayer_Pawn::APlayer_Pawn()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	//TomC - create a new player camera and attach it
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Player Camera"));
+	CameraComp->SetupAttachment(RootComponent);
+
 }
 
 // Called when the game starts or when spawned
