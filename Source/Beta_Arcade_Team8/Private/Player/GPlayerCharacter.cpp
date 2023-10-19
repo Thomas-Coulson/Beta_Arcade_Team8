@@ -125,7 +125,7 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookVector = Value.Get<FVector2D>();
-	
+
 	if (GetController())
 	{
 		if (LookVector.X != 0.0f)

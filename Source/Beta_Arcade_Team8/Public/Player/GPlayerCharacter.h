@@ -62,6 +62,6 @@ private:
 	float ArmLength = 300;
 
 protected:
-	
+
 	TWeakObjectPtr<class UGPlayerAttributes> PlayerAttributeSet;
 };
