@@ -35,8 +35,7 @@ protected:
 
 	virtual void OnRep_PlayerState() override;
 
-	void Move(const FInputActionValue& Value);
-
+	void MoveForward(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
 public:
@@ -61,4 +60,8 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float ArmLength = 300;
+
+protected:
+	
+	TWeakObjectPtr<class UGPlayerAttributes> PlayerAttributeSet;
 };

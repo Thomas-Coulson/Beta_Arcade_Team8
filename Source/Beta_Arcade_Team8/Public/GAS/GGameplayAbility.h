@@ -10,6 +10,8 @@
  *
  */
 
+class AGPlayerCharacter;
+
 UENUM(BlueprintType)
 enum class EGAbilityActivationPolicy : uint8
 {
@@ -28,4 +30,6 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability Activation")
 	EGAbilityActivationPolicy ActivationPolicy;
+
+	AGPlayerCharacter* GetPlayerCharacterFromActorInfo();
 };

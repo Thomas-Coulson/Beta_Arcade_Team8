@@ -5,6 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "NativeGameplayTags.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GAS/GAbilitySystemComponent.h"
 #include "GAS/GAbilitySet.h"
@@ -46,7 +47,7 @@ void AGPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	EIC->BindAbilityActions(InputConfig, this, &ThisClass::InputAbilityTagPressed, &ThisClass::InputAbilityTagReleased, BindHandles);
 
 	EIC->BindNativeAction(InputConfig, FGameplayTag::RequestGameplayTag("InputTag.Move"), ETriggerEvent::Triggered, this,
-		&ThisClass::Move);
+		&ThisClass::MoveForward);
 	EIC->BindNativeAction(InputConfig, FGameplayTag::RequestGameplayTag("InputTag.Look"), ETriggerEvent::Triggered, this,
 		&ThisClass::Look);
 }
@@ -105,12 +106,35 @@ void AGPlayerCharacter::OnRep_PlayerState()
 	}
 }
 
-void AGPlayerCharacter::Move(const FInputActionValue& Value)
+void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
-	GEngine->AddOnScreenDebugMessage(1,1.f,FColor::Yellow, TEXT("MOVE"));
+	const FVector2D DirectionValue = Value.Get<FVector2D>();
+	if(GetController())
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
+
+		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(ForwardVector, DirectionValue.Y);
+
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(RightDirection, DirectionValue.X);
+	}
 }
 
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
-	GEngine->AddOnScreenDebugMessage(1,1.f,FColor::Yellow, TEXT("LOOK"));
+	const FVector2D LookVector = Value.Get<FVector2D>();
+	
+	if (GetController())
+	{
+		if (LookVector.X != 0.0f)
+		{
+			AddControllerYawInput(LookVector.X);
+		}
+		if (LookVector.Y != 0.0f)
+		{
+			AddControllerPitchInput(-LookVector.Y);
+		}
+	}
 }
