@@ -9,6 +9,12 @@ ABeta_Arcade_Team8GameModeBase::ABeta_Arcade_Team8GameModeBase()
 	DefaultPawnClass = APlayer_Pawn::StaticClass();
 }
 
+void ABeta_Arcade_Team8GameModeBase::SetLevelTime(float time)
+{
+	m_levelTimeLimit = time;
+	m_currentTimeSecconds = m_levelTimeLimit;
+}
+
 void ABeta_Arcade_Team8GameModeBase::StartTimer()
 {
 	//Set a timer to call UpdateTimer every 1.0 seconds

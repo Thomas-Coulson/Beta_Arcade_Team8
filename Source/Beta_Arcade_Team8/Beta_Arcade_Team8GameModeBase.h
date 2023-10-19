@@ -7,9 +7,7 @@
 #include "Player_Pawn.h"
 #include "Beta_Arcade_Team8GameModeBase.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class BETA_ARCADE_TEAM8_API ABeta_Arcade_Team8GameModeBase : public AGameModeBase
 {
@@ -17,11 +15,13 @@ class BETA_ARCADE_TEAM8_API ABeta_Arcade_Team8GameModeBase : public AGameModeBas
 
 private:
 	FTimerHandle m_levelTimerHandle;
-	float m_timerStartTime;
 	float m_levelTimeLimit = 60.0f;
 	float m_currentTimeSecconds = m_levelTimeLimit;
 public:
 	ABeta_Arcade_Team8GameModeBase();
+
+	UFUNCTION(BlueprintCallable)
+	void SetLevelTime(float time);
 
 	UFUNCTION(BlueprintCallable)
 	void StartTimer();
