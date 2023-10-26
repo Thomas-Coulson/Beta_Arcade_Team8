@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/TriggerBox.h"
 #include "GameFramework/Actor.h"
 #include "ClimbUpZone.generated.h"
 
@@ -14,9 +15,18 @@ class BETA_ARCADE_TEAM8_API AClimbUpZone : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AClimbUpZone();
-
+	
 	/*UPROPERTY(EditAnywhere)
 	Climb_Finish_Point endPoint;*/
+
+	UFUNCTION()
+	void OnOverlapBegin(AActor* OverlappedActor, class AActor* OtherActor);
+
+	UFUNCTION()
+	void OnOverlapEnd(class AActor* OverlappedActor, class AActor* OtherActor);
+
+	UPROPERTY(EditAnywhere)
+	class AActor* SpecificActor;
 
 protected:
 	// Called when the game starts or when spawned
