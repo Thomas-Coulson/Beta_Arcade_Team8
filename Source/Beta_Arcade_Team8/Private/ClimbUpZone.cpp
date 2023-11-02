@@ -23,7 +23,7 @@ void AClimbUpZone::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 {
 	//on overlap, debug display (for now)
 	//if overlapping actor == specified actor
-	
+
 	AGPlayerCharacter* player = Cast<AGPlayerCharacter>(OtherActor);
 	if (player)
 	{
@@ -63,7 +63,8 @@ void AClimbUpZone::BeginPlay()
 	Super::BeginPlay();
 
 	//extent is too small / 0 (this needs to be bigger / update in editor)
-	DrawDebugBox(GetWorld(), GetActorLocation(), FVector(100, 100, 100), FColor::Magenta, true, -1, 0, 5);
+	//FBox BoundingBox = GetComponentsBoundingBox().ExpandBy(100);
+	DrawDebugBox(GetWorld(), GetActorLocation(), GetComponentsBoundingBox().GetExtent(), FColor::Magenta, true, -1, 0, 5);
 }
 
 // Called every frame
