@@ -2,6 +2,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "ClimbUpZone.h"
+#include "Math/UnrealMathVectorCommon.h"
 
 #include <Player/GPlayerCharacter.h>
 
@@ -24,18 +25,25 @@ void AClimbUpZone::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 	//on overlap, debug display (for now)
 	//if overlapping actor == specified actor
 
-	AGPlayerCharacter* player = Cast<AGPlayerCharacter>(OtherActor);
+	player = Cast<AGPlayerCharacter>(OtherActor);
 	if (player)
 	{
-		print("Overlap Begin");
-		printFString("Overlapping Actor = %s", *OtherActor->GetName());
-	}
+		//playerCharacter = player;
+		//print("Overlap Begin");
+		//printFString("Overlapping Actor = %s", *OtherActor->GetName());
+		playerLerping = true;
+		playerInZone = true;
+		print("Started lerping");
 
-	/*if (OtherActor && (OtherActor != this) && OtherActor == SpecificActor)
-	{
-		print("Overlap Begin");
-		printFString("Overlapping Actor = %s", *OtherActor->GetName());
-	}*/
+		int moveScalar = 50;
+		//this will be split in 2 for actual movement and lerps
+		//FVector newPos = player->GetActorLocation() + (player->GetActorForwardVector() * moveScalar);
+		FVector newPos = player->GetActorLocation();
+		newPos.Z = endPoint->GetActorLocation().Z;
+
+
+		//player->SetActorLocation(newPos);
+	}
 }
 
 void AClimbUpZone::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
@@ -43,18 +51,19 @@ void AClimbUpZone::OnOverlapEnd(AActor* OverlappedActor, AActor* OtherActor)
 	//on end overlap, debug display (for now)
 	//if overlapping actor == specified actor
 
-	AGPlayerCharacter* player = Cast<AGPlayerCharacter>(OtherActor);
+	player = Cast<AGPlayerCharacter>(OtherActor);
 	if (player)
 	{
-		print("End Overlap");
-		printFString(" %s has left the overlap", *OtherActor->GetName());
+		//print("End Overlap");
+		//printFString(" %s has left the overlap", *OtherActor->GetName());
+		playerInZone = false;
 	}
-	
-	/*if (OtherActor && (OtherActor != this) && OtherActor == SpecificActor)
-	{
-		print("End Overlap");
-		printFString(" %s has left the overlap", *OtherActor->GetName());
-	}*/
+
+}
+
+void AClimbUpZone::lerpActorToPos(AActor* actor, FVector newPos)
+{
+	actor->SetActorLocation(FMath::Lerp(actor->GetActorLocation(), newPos, 0.2));
 }
 
 // Called when the game starts or when spawned
@@ -62,8 +71,6 @@ void AClimbUpZone::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//extent is too small / 0 (this needs to be bigger / update in editor)
-	//FBox BoundingBox = GetComponentsBoundingBox().ExpandBy(100);
 	DrawDebugBox(GetWorld(), GetActorLocation(), GetComponentsBoundingBox().GetExtent(), FColor::Magenta, true, -1, 0, 5);
 }
 
@@ -71,6 +78,30 @@ void AClimbUpZone::BeginPlay()
 void AClimbUpZone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (player)
+	{
+		print("Player Valid");
+		//FVector newPos = player->GetActorLocation();
+		//newPos.Z = endPoint->GetActorLocation().Z;
+		FVector newPos = endPoint->GetActorLocation();
+
+		//this if needs updating to stop the lerp at the right time
+		if (player->GetActorLocation().Z > endPoint->GetActorLocation().Z - 5 && 
+			player->GetActorLocation().Z < endPoint->GetActorLocation().Z + 5)
+		{
+			print("stopped lerping");
+			playerLerping = false;
+		}
+
+		if (playerLerping)
+		{
+			print("Lerping");
+			lerpActorToPos(player, newPos);
+		}
+	}
+	
+	
 
 }
 
