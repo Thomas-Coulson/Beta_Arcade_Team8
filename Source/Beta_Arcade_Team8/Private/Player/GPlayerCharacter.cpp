@@ -35,6 +35,8 @@ AGPlayerCharacter::AGPlayerCharacter()
 	//TomC - create a new player camera, and attach it to the spring arm
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Player Camera"));
 	CameraComponent->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
+	
+	GetCharacterMovement()->AirControl = 1;
 }
 
 void AGPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -125,7 +127,6 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookVector = Value.Get<FVector2D>();
-
 	if (GetController())
 	{
 		if (LookVector.X != 0.0f)
