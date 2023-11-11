@@ -35,11 +35,11 @@ void AClimbUpZone::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
 		playerInZone = true;
 		print("Started lerping");
 
-		int moveScalar = 50;
+		//int moveScalar = 50;
 		//this will be split in 2 for actual movement and lerps
 		//FVector newPos = player->GetActorLocation() + (player->GetActorForwardVector() * moveScalar);
-		FVector newPos = player->GetActorLocation();
-		newPos.Z = endPoint->GetActorLocation().Z;
+		//FVector newPos = player->GetActorLocation();
+		//newPos.Z = endPoint->GetActorLocation().Z;
 
 
 		//player->SetActorLocation(newPos);
@@ -87,8 +87,7 @@ void AClimbUpZone::Tick(float DeltaTime)
 		FVector newPos = endPoint->GetActorLocation();
 
 		//this if needs updating to stop the lerp at the right time
-		if (player->GetActorLocation().Z > endPoint->GetActorLocation().Z - 5 && 
-			player->GetActorLocation().Z < endPoint->GetActorLocation().Z + 5)
+		if (player->GetActorLocation().Z >= newPos.Z)
 		{
 			print("stopped lerping");
 			playerLerping = false;
