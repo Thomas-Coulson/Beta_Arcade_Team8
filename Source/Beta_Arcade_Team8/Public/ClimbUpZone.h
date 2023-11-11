@@ -31,12 +31,25 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void lerpActorToPos(AActor* actor, FVector newPos);
+	void lerpActorToPos(AActor* actor);
+	bool isPlayerLookingAtEndPoint();
+	float getAngleBetweenVectors(FVector A, FVector B);
+	float DotProduct(FVector A, FVector B);
+	float VectorMagnitude(FVector A);
 
 	bool playerInZone = false;
 	bool playerLerping = false;
+	float baseGravScale;
 	float lerpAlpha = 0;
+	float lerpAphaMultiplier = 0.01;
 	class AGPlayerCharacter* player;
+
+	//FVector WallDirection = endPoint->GetActorLocation() - this->GetActorLocation();
+
+	bool climbUpActive = false;
+
+	FVector StartLerpLoc;
+	FVector EndLerpLoc;
 
 public:	
 	// Called every frame
