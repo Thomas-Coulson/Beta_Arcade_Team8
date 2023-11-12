@@ -21,6 +21,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	class AActor* endPoint;
 
+	UPROPERTY(EditAnywhere)
+	bool toggleDebugView = true;
+
 	UFUNCTION()
 	void OnOverlapBegin(AActor* OverlappedActor, class AActor* OtherActor);
 
@@ -36,13 +39,22 @@ protected:
 	float getAngleBetweenVectors(FVector A, FVector B);
 	float DotProduct(FVector A, FVector B);
 	float VectorMagnitude(FVector A);
+	float claculateLerpAlphaMultiplier(float playerDistance);
 
 	bool playerInZone = false;
 	bool playerLerping = false;
 	float baseGravScale;
 	float lerpAlpha = 0;
-	float lerpAphaMultiplier = 0.01;
+	float lunchSpeed = 400;
+	float minLerpAphaMultiplier = 0.01;
+	float maxLerpAlphaMultiplier = 0.1;
+	float lerpAphaMultiplier = minLerpAphaMultiplier;
 	class AGPlayerCharacter* player;
+
+	float maxPlayerDist = 350;
+	float minPlayerDist = 100;
+
+	
 
 	//FVector WallDirection = endPoint->GetActorLocation() - this->GetActorLocation();
 
