@@ -9,8 +9,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GAS/GAbilitySystemComponent.h"
 #include "GAS/GAbilitySet.h"
+#include "GAS/AttributeSest/GPlayerAttributes.h"
 #include "Input/G_EIC.h"
-#include "Player/GPlayerState.h"
 #include "Player/GPlayerController.h"
 
 
@@ -37,6 +37,10 @@ AGPlayerCharacter::AGPlayerCharacter()
 	CameraComponent->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
 	
 	GetCharacterMovement()->AirControl = 1;
+	GetCharacterMovement()->GravityScale = 1.4;
+	GetCharacterMovement()->JumpZVelocity = 500;
+
+	PlayerAttributeSet = CreateDefaultSubobject<UGPlayerAttributes>(TEXT("PlayerAttributes"));
 }
 
 void AGPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -58,11 +62,7 @@ void AGPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	AGPlayerState* PS = Cast<AGPlayerState>(GetPlayerState());
-	check(PS);
-
-	AbilitySystemComponent = Cast<UGAbilitySystemComponent>(PS->GetAbilitySystemComponent());
-	AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
 	if(AbilitySet)
 	{
@@ -73,6 +73,7 @@ void AGPlayerCharacter::PossessedBy(AController* NewController)
 void AGPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
 	if(AGPlayerController* PC = Cast<AGPlayerController>(GetController()))
 	{
 		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
@@ -92,25 +93,10 @@ void AGPlayerCharacter::InputAbilityTagReleased(FGameplayTag InputTag)
 	AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 }
 
-void AGPlayerCharacter::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	AGPlayerState* PS = Cast<AGPlayerState>(GetPlayerState());
-	check(PS);
-
-	AbilitySystemComponent = Cast<UGAbilitySystemComponent>(PS->GetAbilitySystemComponent());
-	PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS,this);
-
-	if(AbilitySet)
-	{
-		AbilitySet->GiveToAbilitySystem(AbilitySystemComponent.Get(), nullptr, this);
-	}
-}
-
 void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
 	const FVector2D DirectionValue = Value.Get<FVector2D>();
+
 	if(GetController())
 	{
 		const FRotator Rotation = Controller->GetControlRotation();

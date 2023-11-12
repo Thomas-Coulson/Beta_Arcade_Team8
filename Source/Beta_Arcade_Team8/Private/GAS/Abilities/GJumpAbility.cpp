@@ -14,8 +14,7 @@ bool UGJumpAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	const AGPlayerCharacter* PlayerCharacter = Cast<AGPlayerCharacter>(ActorInfo->AvatarActor.Get());
-	auto jumps = PlayerCharacter->JumpMaxCount;
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("%i = MAX JUMPS"), jumps));
+
 	if (PlayerCharacter && Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		if (PlayerCharacter->CanJump())
