@@ -14,6 +14,7 @@ bool UGJumpAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	const AGPlayerCharacter* PlayerCharacter = Cast<AGPlayerCharacter>(ActorInfo->AvatarActor.Get());
+
 	if (PlayerCharacter && Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		if (PlayerCharacter->CanJump())

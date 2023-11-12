@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "GAS/GAbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "GBaseCharacter.h"
@@ -33,8 +35,6 @@ protected:
 	void InputAbilityTagPressed(FGameplayTag InputTag);
 	void InputAbilityTagReleased(FGameplayTag InputTag);
 
-	virtual void OnRep_PlayerState() override;
-
 	void MoveForward(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
@@ -48,6 +48,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "InputSystem")
 	class UInputMappingContext* DefaultMappingContext;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
+	class UGPlayerAttributes* PlayerAttributeSet;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", Meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* CameraComponent;
@@ -60,8 +63,4 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float ArmLength = 300;
-
-protected:
-
-	TWeakObjectPtr<class UGPlayerAttributes> PlayerAttributeSet;
 };

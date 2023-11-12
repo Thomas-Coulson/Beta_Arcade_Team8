@@ -2,18 +2,13 @@
 
 
 #include "Player/GPlayerController.h"
-
+#include "Player/GPlayerCharacter.h"
 #include "GAS/GAbilitySystemComponent.h"
-#include "Player/GPlayerState.h"
-
-AGPlayerState* AGPlayerController::GetPlayerState() const
-{
-	return CastChecked<AGPlayerState>(PlayerState, ECastCheckedType::NullAllowed);
-}
 
 UGAbilitySystemComponent* AGPlayerController::GetASC() const
 {
-	return CastChecked<UGAbilitySystemComponent>(GetPlayerState()->GetAbilitySystemComponent());
+	auto PC = Cast<AGPlayerCharacter>(GetCharacter());
+	return CastChecked<UGAbilitySystemComponent>(PC->GetAbilitySystemComponent());
 }
 
 void AGPlayerController::PreProcessInput(const float DeltaTime, const bool bGamePaused)
