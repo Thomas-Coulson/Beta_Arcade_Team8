@@ -27,4 +27,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Ability")
 	void StopJump();
+
+private:
+
+	float WallJumpMultiplier = 450;
 };

@@ -25,10 +25,19 @@ class BETA_ARCADE_TEAM8_API AGPlayerCharacter : public AGBaseCharacter
 public:
 	AGPlayerCharacter();
 
+	virtual void Tick(float DeltaTime) override;
+
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	//TomC - Variable Access for wall running
+	bool IsPlayerOnWall() { return RunningOnLeft || RunningOnRight; }
+	bool PlayerOnLeftWall() { return RunningOnLeft; }
+	bool PlayerOnRightWall() { return RunningOnRight; }
+	void SetLeftWallJump(bool jumping) { JumpingOffWallLeft = jumping; }
+	void SetRightWallJump(bool jumping) { JumpingOffWallRight = jumping; }
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,6 +46,8 @@ protected:
 
 	void MoveForward(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	void PlayerOffWall();
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "InputSystem")
@@ -51,6 +62,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
 	class UGPlayerAttributes* PlayerAttributeSet;
 
+	UPROPERTY(EditAnywhere, Category="Collision")
+	TEnumAsByte<ECollisionChannel> RightTraceChannelProperty = ECC_Pawn;
+
+	UPROPERTY(EditAnywhere, Category = "Collision")
+	TEnumAsByte<ECollisionChannel> LeftTraceChannelProperty = ECC_Pawn;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", Meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* CameraComponent;
@@ -63,4 +80,13 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float ArmLength = 300;
+
+	UPROPERTY(EditAnywhere)
+	float TraceLength = 50.0f;
+
+	//Tomc- WallRun Variables
+	bool RunningOnLeft = false;
+	bool RunningOnRight = false;
+	bool JumpingOffWallLeft = false;
+	bool JumpingOffWallRight = false;
 };

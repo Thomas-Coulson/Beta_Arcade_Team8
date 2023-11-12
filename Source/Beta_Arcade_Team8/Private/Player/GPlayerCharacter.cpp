@@ -13,7 +13,6 @@
 #include "Input/G_EIC.h"
 #include "Player/GPlayerController.h"
 
-
 AGPlayerCharacter::AGPlayerCharacter()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -81,6 +80,101 @@ void AGPlayerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	//TomC - allow plane constraints for wall running
+	GetCharacterMovement()->SetPlaneConstraintEnabled(true);
+}
+
+void AGPlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UCharacterMovementComponent* characterMovement = GetCharacterMovement();
+
+	if (characterMovement->IsFalling())
+	{
+		//TomC - Setup left and right Line Traces for Wall Running
+		FHitResult RightHit;
+		FHitResult LeftHit;
+
+		FVector TraceStart = GetActorLocation();
+		FVector RightTraceEnd = TraceStart + GetActorRightVector() * TraceLength;
+		FVector LeftTraceEnd = TraceStart - GetActorRightVector() * TraceLength;
+
+		FCollisionQueryParams RightQueryParams;
+		RightQueryParams.AddIgnoredActor(this);
+
+		FCollisionQueryParams LeftQueryParams;
+		LeftQueryParams.AddIgnoredActor(this);
+
+		if (!RunningOnLeft)
+		{
+			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
+			{
+				if (!JumpingOffWallRight)
+				{
+					//Touching Right wall in the air (and not jumping off)
+					RunningOnRight = true;
+					JumpMaxCount = 2;
+
+					//Set Rotation, movement, and gravity scale to stick to wall
+					SetActorRotation(FRotator(0, RightHit.Normal.Rotation().Yaw + 90, 0));
+					characterMovement->Velocity = FVector(GetActorForwardVector().X * 500, GetActorForwardVector().Y * 500, 0);
+					characterMovement->GravityScale = 0;
+
+					//lock player to Z axis
+					characterMovement->SetPlaneConstraintNormal(FVector(0, 0, 1));
+				}
+				else
+				{
+					JumpMaxCount = 1;
+				}
+				
+			}
+			else
+			{
+				JumpingOffWallRight = false;
+				RunningOnRight = false;
+				PlayerOffWall();
+			}
+		}
+
+		if (!RunningOnRight)
+		{
+			if (GetWorld()->LineTraceSingleByChannel(LeftHit, TraceStart, LeftTraceEnd, LeftTraceChannelProperty, LeftQueryParams))
+			{
+				if (!JumpingOffWallLeft)
+				{
+					//Touching Left wall in the air
+					RunningOnLeft = true;
+					JumpMaxCount = 2;
+
+					//Set Rotation, movement, and gravity scale to stick to wall
+					SetActorRotation(FRotator(0, LeftHit.Normal.Rotation().Yaw - 90, 0));
+					characterMovement->Velocity = FVector(GetActorForwardVector().X * 500, GetActorForwardVector().Y * 500, 0);
+					characterMovement->GravityScale = 0;
+
+					//lock player to Z axis
+					characterMovement->SetPlaneConstraintNormal(FVector(0, 0, 1));
+				}
+				else
+				{
+					JumpMaxCount = 1;
+				}
+			}
+			else
+			{
+				JumpingOffWallLeft = false;
+				RunningOnLeft = false;
+				PlayerOffWall();
+			}
+		}
+
+		//Debug Draw for line trace
+		//DrawDebugLine(GetWorld(), TraceStart, RightTraceEnd, RightHit.bBlockingHit ? FColor::Blue : FColor::Red, false, 5.0f, 0, 10.0f);
+		//DrawDebugLine(GetWorld(), TraceStart, LeftTraceEnd, LeftHit.bBlockingHit ? FColor::Blue : FColor::Red, false, 5.0f, 0, 10.0f);
+	}
+
 }
 
 void AGPlayerCharacter::InputAbilityTagPressed(FGameplayTag InputTag)
@@ -124,4 +218,11 @@ void AGPlayerCharacter::Look(const FInputActionValue& Value)
 			AddControllerPitchInput(-LookVector.Y);
 		}
 	}
+}
+
+void AGPlayerCharacter::PlayerOffWall()
+{
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	MovementComponent->GravityScale = 1.4;
+	MovementComponent->SetPlaneConstraintNormal(FVector(0, 0, 0));
 }
