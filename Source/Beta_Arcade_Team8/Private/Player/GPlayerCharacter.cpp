@@ -13,10 +13,6 @@
 #include "Input/G_EIC.h"
 #include "Player/GPlayerController.h"
 
-//shortcus for logging debug outputs
-#define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::Green,text)
-#define printFString(text, fstring) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT(text), fstring))
-
 AGPlayerCharacter::AGPlayerCharacter()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -227,7 +223,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 
 void AGPlayerCharacter::StartClimbTimer()
 {
-	print("Start Climb Timer");
 	GetWorldTimerManager().SetTimer(ClimbTimerHandle, this, &AGPlayerCharacter::UpdateClimbTimer, ClimbUpdateTick, true, 0.0f);
 }
 
@@ -244,7 +239,6 @@ void AGPlayerCharacter::StopClimb()
 {
 	if (GetWorldTimerManager().IsTimerActive(ClimbTimerHandle))
 	{
-		print("Stop Climb Timer");
 		GetWorldTimerManager().ClearTimer(ClimbTimerHandle);
 	}
 
