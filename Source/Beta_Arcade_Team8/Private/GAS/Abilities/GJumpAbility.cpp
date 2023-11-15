@@ -4,6 +4,7 @@
 #include "GAS/Abilities/GJumpAbility.h"
 #include "Player/GPlayerCharacter.h"
 
+
 UGJumpAbility::UGJumpAbility()
 {
 	ActivationPolicy = EGAbilityActivationPolicy::OnInputTriggered;
@@ -36,7 +37,26 @@ void UGJumpAbility::StartJump()
 {
 	if (AGPlayerCharacter* PlayerCharacter = GetPlayerCharacterFromActorInfo())
 	{
-		PlayerCharacter->Jump();
+		if (!PlayerCharacter->IsPlayerOnWall())
+		{
+			PlayerCharacter->Jump();
+		}
+		else
+		{
+			FVector newVelocity;
+			if (PlayerCharacter->PlayerOnRightWall())
+			{
+				PlayerCharacter->SetRightWallJump(true);
+				newVelocity = PlayerCharacter->GetActorRightVector() * -WallJumpMultiplier;
+			}
+			else if (PlayerCharacter->PlayerOnLeftWall())
+			{
+				PlayerCharacter->SetLeftWallJump(true);
+				newVelocity = PlayerCharacter->GetActorRightVector() * WallJumpMultiplier;
+			}
+			PlayerCharacter->LaunchCharacter(FVector(newVelocity.X, newVelocity.Y, WallJumpMultiplier), false, true);
+		}
+			
 	}
 }
 
