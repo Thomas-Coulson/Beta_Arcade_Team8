@@ -25,10 +25,20 @@ class BETA_ARCADE_TEAM8_API AGPlayerCharacter : public AGBaseCharacter
 public:
 	AGPlayerCharacter();
 
+	virtual void Tick(float DeltaTime) override;
+
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	//TomC - Variable Access for wall running
+	bool IsPlayerOnWall() { return RunningOnLeft || RunningOnRight || ClimbingFront; }
+	bool PlayerOnLeftWall() { return RunningOnLeft; }
+	bool PlayerOnRightWall() { return RunningOnRight; }
+	void SetLeftWallJump(bool jumping) { JumpingOffWallLeft = jumping; }
+	void SetRightWallJump(bool jumping) { JumpingOffWallRight = jumping; }
+	void SetCurrentClimbs(int newClimbs) { CurrentClimbs = newClimbs; }
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,6 +47,11 @@ protected:
 
 	void MoveForward(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	void PlayerOffWall();
+	void StartClimbTimer();
+	void UpdateClimbTimer();
+	void StopClimb();
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "InputSystem")
@@ -51,6 +66,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "PlayerAttributes")
 	class UGPlayerAttributes* PlayerAttributeSet;
 
+	UPROPERTY(EditAnywhere, Category="Collision")
+	TEnumAsByte<ECollisionChannel> RightTraceChannelProperty = ECC_Pawn;
+
+	UPROPERTY(EditAnywhere, Category = "Collision")
+	TEnumAsByte<ECollisionChannel> LeftTraceChannelProperty = ECC_Pawn;
+
+	UPROPERTY(EditAnywhere, Category = "Collision")
+	TEnumAsByte<ECollisionChannel> FrontTraceChannelProperty = ECC_Pawn;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character", Meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* CameraComponent;
@@ -63,4 +87,36 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float ArmLength = 300;
+
+	UPROPERTY(EditAnywhere)
+	float TraceLength = 50.0f;
+
+	UPROPERTY(EditAnywhere)
+	double FrontTraceOffset = 200.0f;
+
+	UPROPERTY(EditAnywhere)
+	float ClimbSpeed = 350.0f;
+
+	UPROPERTY(EditAnywhere)
+	float WallRunSpeed = 500.0f;
+
+	UPROPERTY(EditAnywhere)
+	int MaxClimbs = 1;
+
+	UPROPERTY(EditAnywhere)
+	float ClimbDuration = 1.0f;
+
+
+	//Tomc- WallRun Variables
+	bool RunningOnLeft = false;
+	bool RunningOnRight = false;
+	bool JumpingOffWallLeft = false;
+	bool JumpingOffWallRight = false;
+
+	//TomC Wall Climb Variables
+	bool ClimbingFront = false;
+	int CurrentClimbs = 0;
+	FTimerHandle ClimbTimerHandle;
+	float CurrentClimbDuration = 0.0f;
+	float ClimbUpdateTick = 0.5f;
 };
