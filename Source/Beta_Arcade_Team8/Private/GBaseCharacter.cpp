@@ -3,6 +3,7 @@
 
 #include "GBaseCharacter.h"
 #include "GAS/GAbilitySystemComponent.h"
+#include "GAS/AttributeSest/CharacterAttributeSet.h"
 
 // Sets default values
 AGBaseCharacter::AGBaseCharacter()
@@ -10,7 +11,8 @@ AGBaseCharacter::AGBaseCharacter()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	AbilitySystemComponent = CreateDefaultSubobject<UGAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent = CreateDefaultSubobject<UGAbilitySystemComponent>(TEXT("ASC"));
+	CharacterAttributeSet = CreateDefaultSubobject<UCharacterAttributeSet>(TEXT("CharacterAttributes"));
 }
 
 UAbilitySystemComponent* AGBaseCharacter::GetAbilitySystemComponent() const
