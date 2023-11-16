@@ -54,6 +54,8 @@ void UGJumpAbility::StartJump()
 				PlayerCharacter->SetLeftWallJump(true);
 				newVelocity = PlayerCharacter->GetActorRightVector() * WallJumpMultiplier;
 			}
+			//reset climbs after jump, so player can climb after a jump from wallrun
+			PlayerCharacter->SetCurrentClimbs(0);
 			PlayerCharacter->LaunchCharacter(FVector(newVelocity.X, newVelocity.Y, WallJumpMultiplier), false, true);
 		}
 			
