@@ -13,7 +13,6 @@
 #include "Input/G_EIC.h"
 #include "Player/GPlayerController.h"
 
-
 AGPlayerCharacter::AGPlayerCharacter()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -81,6 +80,171 @@ void AGPlayerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	//TomC - allow plane constraints for wall running
+	GetCharacterMovement()->SetPlaneConstraintEnabled(true);
+}
+
+void AGPlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UCharacterMovementComponent* characterMovement = GetCharacterMovement();
+
+	if (characterMovement->IsFalling())
+	{
+		//TomC - Setup left and right Line Traces for Wall Running
+		FHitResult RightHit;
+		FHitResult LeftHit;
+		FHitResult FrontHit;
+
+		FVector TraceStart = GetActorLocation();
+		FVector FrontTraceStart = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - FrontTraceOffset);
+		FVector RightTraceEnd = TraceStart + GetActorRightVector() * TraceLength;
+		FVector LeftTraceEnd = TraceStart - GetActorRightVector() * TraceLength;
+		FVector FrontTraceEnd = FrontTraceStart + GetActorForwardVector() * TraceLength;
+
+		FCollisionQueryParams RightQueryParams;
+		RightQueryParams.AddIgnoredActor(this);
+
+		FCollisionQueryParams LeftQueryParams;
+		LeftQueryParams.AddIgnoredActor(this);
+
+		FCollisionQueryParams FrontQueryParams;
+		FrontQueryParams.AddIgnoredActor(this);
+
+		//test front wall climb before wall run
+		if (!RunningOnLeft && !RunningOnRight && (CurrentClimbs < MaxClimbs || ClimbingFront))
+		{
+			if (GetWorld()->LineTraceSingleByChannel(FrontHit, FrontTraceStart, FrontTraceEnd, FrontTraceChannelProperty, FrontQueryParams))
+			{
+				ClimbingFront = true;
+				if (CurrentClimbs == 0)
+				{
+					CurrentClimbs++;
+					StartClimbTimer();
+				}
+					
+				//Set Rotation, movement, and gravity scale to stick to wall
+				SetActorRotation(FRotator(0, FrontHit.Normal.Rotation().Yaw + 180, 0));
+				characterMovement->Velocity = FVector(0, 0, GetActorUpVector().Z * 500);
+				characterMovement->GravityScale = 0;
+				//lock player to Z axis
+				characterMovement->SetPlaneConstraintNormal(FVector(1, 1, 0));
+			}
+			else
+			{
+				StopClimb();
+			}
+		}
+
+		if (!RunningOnLeft)
+		{
+			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
+			{
+				if (!JumpingOffWallRight)
+				{
+					//Touching Right wall in the air (and not jumping off)
+					RunningOnRight = true;
+					JumpMaxCount = 2;
+
+					//count as a climb, so cant verticle climb without jumping
+					if (CurrentClimbs == 0)
+						CurrentClimbs++;
+
+					//Set Rotation, movement, and gravity scale to stick to wall
+					SetActorRotation(FRotator(0, RightHit.Normal.Rotation().Yaw + 90, 0));
+					characterMovement->Velocity = FVector(GetActorForwardVector().X * 500, GetActorForwardVector().Y * 500, 0);
+					characterMovement->GravityScale = 0;
+
+					//lock player to Z axis
+					characterMovement->SetPlaneConstraintNormal(FVector(0, 0, 1));
+				}
+				else
+				{
+					JumpMaxCount = 1;
+				}
+				
+			}
+			else
+			{
+				JumpingOffWallRight = false;
+				RunningOnRight = false;
+				PlayerOffWall();
+			}
+		}
+
+		if (!RunningOnRight)
+		{
+			if (GetWorld()->LineTraceSingleByChannel(LeftHit, TraceStart, LeftTraceEnd, LeftTraceChannelProperty, LeftQueryParams))
+			{
+				if (!JumpingOffWallLeft)
+				{
+					//Touching Left wall in the air
+					RunningOnLeft = true;
+					JumpMaxCount = 2;
+
+					//count as a climb, so cant verticle climb without jumping
+					if (CurrentClimbs == 0)
+						CurrentClimbs++;
+
+					//Set Rotation, movement, and gravity scale to stick to wall
+					SetActorRotation(FRotator(0, LeftHit.Normal.Rotation().Yaw - 90, 0));
+					characterMovement->Velocity = FVector(GetActorForwardVector().X * 500, GetActorForwardVector().Y * 500, 0);
+					characterMovement->GravityScale = 0;
+
+					//lock player to Z axis
+					characterMovement->SetPlaneConstraintNormal(FVector(0, 0, 1));
+				}
+				else
+				{
+					JumpMaxCount = 1;
+				}
+			}
+			else
+			{
+				JumpingOffWallLeft = false;
+				RunningOnLeft = false;
+				PlayerOffWall();
+			}
+		}
+
+		//Debug Draw for line trace
+		//DrawDebugLine(GetWorld(), TraceStart, RightTraceEnd, RightHit.bBlockingHit ? FColor::Blue : FColor::Red, false, 5.0f, 0, 10.0f);
+		//DrawDebugLine(GetWorld(), TraceStart, LeftTraceEnd, LeftHit.bBlockingHit ? FColor::Blue : FColor::Red, false, 5.0f, 0, 10.0f);
+		//DrawDebugLine(GetWorld(), FrontTraceStart, FrontTraceEnd, FrontHit.bBlockingHit ? FColor::Blue : FColor::Red, false, 5.0f, 0, 10.0f);
+	}
+	else
+	{
+		CurrentClimbs = 0;
+	}
+
+}
+
+void AGPlayerCharacter::StartClimbTimer()
+{
+	GetWorldTimerManager().SetTimer(ClimbTimerHandle, this, &AGPlayerCharacter::UpdateClimbTimer, ClimbUpdateTick, true, 0.0f);
+}
+
+void AGPlayerCharacter::UpdateClimbTimer()
+{
+	CurrentClimbDuration += ClimbUpdateTick;
+	if (CurrentClimbDuration >= ClimbDuration)
+	{
+		StopClimb();
+	}
+}
+
+void AGPlayerCharacter::StopClimb()
+{
+	if (GetWorldTimerManager().IsTimerActive(ClimbTimerHandle))
+	{
+		GetWorldTimerManager().ClearTimer(ClimbTimerHandle);
+	}
+
+	CurrentClimbDuration = 0;
+	ClimbingFront = false;
+	PlayerOffWall();
 }
 
 void AGPlayerCharacter::InputAbilityTagPressed(FGameplayTag InputTag)
@@ -112,16 +276,28 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
-	const FVector2D LookVector = Value.Get<FVector2D>();
-	if (GetController())
+	//look player look when on a wall
+	if (!IsPlayerOnWall())
 	{
-		if (LookVector.X != 0.0f)
+		const FVector2D LookVector = Value.Get<FVector2D>();
+		if (GetController())
 		{
-			AddControllerYawInput(LookVector.X);
-		}
-		if (LookVector.Y != 0.0f)
-		{
-			AddControllerPitchInput(-LookVector.Y);
+			if (LookVector.X != 0.0f)
+			{
+				AddControllerYawInput(LookVector.X);
+			}
+			if (LookVector.Y != 0.0f)
+			{
+				AddControllerPitchInput(-LookVector.Y);
+			}
 		}
 	}
+	
+}
+
+void AGPlayerCharacter::PlayerOffWall()
+{
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	MovementComponent->GravityScale = 1.4;
+	MovementComponent->SetPlaneConstraintNormal(FVector(0, 0, 0));
 }

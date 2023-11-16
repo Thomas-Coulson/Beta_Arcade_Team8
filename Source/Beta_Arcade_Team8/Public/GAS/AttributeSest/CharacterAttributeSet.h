@@ -32,4 +32,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "SpeedMultiplier")
 	FGameplayAttributeData SpeedMultiplier = 1.0f;
 	ATTRIBUTE_ACCESSORS(UCharacterAttributeSet, SpeedMultiplier)
+
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 };
