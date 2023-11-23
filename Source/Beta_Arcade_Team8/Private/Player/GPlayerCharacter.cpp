@@ -212,7 +212,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 				JumpingOffWallLeft = false;
 				RunningOnLeft = false;
 				PlayerOffWall();
-				//StopClimbTimer();
 			}
 		}
 
@@ -287,6 +286,7 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
+	//added test comment
 	//look player look when on a wall
 	if (!IsPlayerOnWall())
 	{
