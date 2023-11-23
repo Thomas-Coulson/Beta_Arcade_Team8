@@ -210,7 +210,9 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 			else
 			{
 				JumpingOffWallLeft = false;
-				StopClimbTimer();
+				RunningOnLeft = false;
+				PlayerOffWall();
+				//StopClimbTimer();
 			}
 		}
 
