@@ -51,7 +51,7 @@ protected:
 	void PlayerOffWall();
 	void StartClimbTimer();
 	void UpdateClimbTimer();
-	void StopClimb();
+	void StopClimbTimer();
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "InputSystem")
@@ -112,6 +112,7 @@ private:
 	bool RunningOnRight = false;
 	bool JumpingOffWallLeft = false;
 	bool JumpingOffWallRight = false;
+	bool HasRunOnRight = false;
 
 	//TomC Wall Climb Variables
 	bool ClimbingFront = false;
