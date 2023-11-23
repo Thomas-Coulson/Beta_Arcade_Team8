@@ -15,13 +15,14 @@ class BETA_ARCADE_TEAM8_API ABeta_Arcade_Team8GameModeBase : public AGameModeBas
 
 private:
 	FTimerHandle m_levelTimerHandle;
-	float m_levelTimeLimit = 60.0f;
-	float m_currentTimeSecconds = m_levelTimeLimit;
+	float m_currentTimeSecconds = 0;
+	float m_timerInterval = 0.01f;
+
 public:
 	ABeta_Arcade_Team8GameModeBase();
 
-	UFUNCTION(BlueprintCallable)
-	void SetLevelTime(float time);
+	//UFUNCTION(BlueprintCallable)
+	//void SetLevelTime(float time);
 
 	UFUNCTION(BlueprintCallable)
 	void StartTimer();
