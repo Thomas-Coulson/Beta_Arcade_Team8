@@ -160,11 +160,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 					RunningOnRight = true;
 					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));
 
-					//count as a climb, so cant verticle climb without jumping
-					//Dont need this if we lock player cam input
-					/*if (CurrentClimbs == 0)
-						CurrentClimbs++;*/
-
 					//Set Rotation, movement, and gravity scale to stick to wall
 					SetActorRotation(FRotator(0, RightHit.Normal.Rotation().Yaw + 90, 0));
 					characterMovement->Velocity = FVector(GetActorForwardVector().X * 500, GetActorForwardVector().Y * 500, 0);
@@ -193,11 +188,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 					RunningOnLeft = true;
 					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));
 
-					//count as a climb, so cant verticle climb without jumping
-					//Dont need this if we lock player cam input
-					/*if (CurrentClimbs == 0)
-						CurrentClimbs++;*/
-
 					//Set Rotation, movement, and gravity scale to stick to wall
 					SetActorRotation(FRotator(0, LeftHit.Normal.Rotation().Yaw - 90, 0));
 					characterMovement->Velocity = FVector(GetActorForwardVector().X * 500, GetActorForwardVector().Y * 500, 0);
@@ -212,7 +202,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 				JumpingOffWallLeft = false;
 				RunningOnLeft = false;
 				PlayerOffWall();
-				//StopClimbTimer();
 			}
 		}
 
