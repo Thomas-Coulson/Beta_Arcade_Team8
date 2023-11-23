@@ -118,7 +118,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		FrontQueryParams.AddIgnoredActor(this);
 
 		FName tagName = "NoClimb";
-		if (ActorHasTag(tagName))
+		if (!ActorHasTag(tagName))
 		{
 			//test front wall climb before wall run
 			if (!RunningOnLeft && !RunningOnRight && (CurrentClimbs < MaxClimbs || ClimbingFront))
