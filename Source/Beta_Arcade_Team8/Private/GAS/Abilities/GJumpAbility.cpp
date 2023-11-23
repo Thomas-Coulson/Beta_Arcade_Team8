@@ -18,7 +18,7 @@ bool UGJumpAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	if (PlayerCharacter && Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
-		if (PlayerCharacter->CanJump())
+		if (PlayerCharacter->CanJump() || PlayerCharacter->GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override")))
 		{
 			return true;
 		}
