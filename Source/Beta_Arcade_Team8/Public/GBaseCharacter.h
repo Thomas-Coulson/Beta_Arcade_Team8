@@ -23,5 +23,5 @@ protected:
 	virtual void BeginPlay() override;
 
 	TWeakObjectPtr<class UGAbilitySystemComponent> AbilitySystemComponent;
-	TWeakObjectPtr<class UCharacterAttributeSet> AttributeSet;
+	TWeakObjectPtr<class UCharacterAttributeSet> CharacterAttributeSet;
 };

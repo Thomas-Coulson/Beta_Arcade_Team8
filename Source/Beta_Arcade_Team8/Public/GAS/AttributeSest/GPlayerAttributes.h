@@ -22,10 +22,12 @@ class BETA_ARCADE_TEAM8_API UGPlayerAttributes : public UAttributeSet
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Jump")
-	FGameplayAttributeData Jumps;
-	ATTRIBUTE_ACCESSORS(UGPlayerAttributes, Jumps)
+	FGameplayAttributeData MaxJumps = 1.0f;
+	ATTRIBUTE_ACCESSORS(UGPlayerAttributes, MaxJumps)
 
 	UPROPERTY(BlueprintReadOnly, Category = "Jump")
-	FGameplayAttributeData ZVelocity;
+	FGameplayAttributeData ZVelocity = 500.f;
 	ATTRIBUTE_ACCESSORS(UGPlayerAttributes, ZVelocity)
+
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 };
