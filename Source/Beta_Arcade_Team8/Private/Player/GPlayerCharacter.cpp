@@ -158,7 +158,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 
 					HasRunOnRight = true;
 					RunningOnRight = true;
-					JumpMaxCount = 2;
+					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));
 
 					//count as a climb, so cant verticle climb without jumping
 					//Dont need this if we lock player cam input
@@ -173,11 +173,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 					//lock player to Z axis
 					characterMovement->SetPlaneConstraintNormal(FVector(0, 0, 1));
 				}
-				else
-				{
-					JumpMaxCount = 1;
-				}
-				
 			}
 			else
 			{
@@ -196,7 +191,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 					//Touching Left wall in the air
 					HasRunOnRight = false;
 					RunningOnLeft = true;
-					JumpMaxCount = 2;
+					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));
 
 					//count as a climb, so cant verticle climb without jumping
 					//Dont need this if we lock player cam input
@@ -210,10 +205,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 
 					//lock player to Z axis
 					characterMovement->SetPlaneConstraintNormal(FVector(0, 0, 1));
-				}
-				else
-				{
-					JumpMaxCount = 1;
 				}
 			}
 			else
@@ -318,4 +309,5 @@ void AGPlayerCharacter::PlayerOffWall()
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->GravityScale = 1.4;
 	MovementComponent->SetPlaneConstraintNormal(FVector(0, 0, 0));
+	AbilitySystemComponent->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));
 }
