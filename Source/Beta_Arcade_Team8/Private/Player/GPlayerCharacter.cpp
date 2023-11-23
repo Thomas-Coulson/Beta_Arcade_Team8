@@ -117,31 +117,32 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		FCollisionQueryParams FrontQueryParams;
 		FrontQueryParams.AddIgnoredActor(this);
 
-		/*FName tagName = "NoClimb";
-		ActorHasTag(tagName);*/
-
-		//test front wall climb before wall run
-		if (!RunningOnLeft && !RunningOnRight && (CurrentClimbs < MaxClimbs || ClimbingFront))
+		FName tagName = "NoClimb";
+		if (ActorHasTag(tagName))
 		{
-			if (GetWorld()->LineTraceSingleByChannel(FrontHit, FrontTraceStart, FrontTraceEnd, FrontTraceChannelProperty, FrontQueryParams))
+			//test front wall climb before wall run
+			if (!RunningOnLeft && !RunningOnRight && (CurrentClimbs < MaxClimbs || ClimbingFront))
 			{
-				ClimbingFront = true;
-				if (CurrentClimbs == 0)
+				if (GetWorld()->LineTraceSingleByChannel(FrontHit, FrontTraceStart, FrontTraceEnd, FrontTraceChannelProperty, FrontQueryParams))
 				{
-					CurrentClimbs++;
-					StartClimbTimer();
+					ClimbingFront = true;
+					if (CurrentClimbs == 0)
+					{
+						CurrentClimbs++;
+						StartClimbTimer();
+					}
+
+					//Set Rotation, movement, and gravity scale to stick to wall
+					SetActorRotation(FRotator(0, FrontHit.Normal.Rotation().Yaw + 180, 0));
+					characterMovement->Velocity = FVector(0, 0, GetActorUpVector().Z * 500);
+					characterMovement->GravityScale = 0;
+					//lock player to Z axis
+					characterMovement->SetPlaneConstraintNormal(FVector(1, 1, 0));
 				}
-					
-				//Set Rotation, movement, and gravity scale to stick to wall
-				SetActorRotation(FRotator(0, FrontHit.Normal.Rotation().Yaw + 180, 0));
-				characterMovement->Velocity = FVector(0, 0, GetActorUpVector().Z * 500);
-				characterMovement->GravityScale = 0;
-				//lock player to Z axis
-				characterMovement->SetPlaneConstraintNormal(FVector(1, 1, 0));
-			}
-			else
-			{
-				StopClimbTimer();
+				else
+				{
+					StopClimbTimer();
+				}
 			}
 		}
 
