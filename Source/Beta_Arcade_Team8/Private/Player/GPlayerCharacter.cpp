@@ -117,13 +117,13 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		FCollisionQueryParams FrontQueryParams;
 		FrontQueryParams.AddIgnoredActor(this);
 
-		FName tagName = "NoClimb";
-		if (!ActorHasTag(tagName))
+
+		//test front wall climb before wall run
+		if (!RunningOnLeft && !RunningOnRight && (CurrentClimbs < MaxClimbs || ClimbingFront))
 		{
-			//test front wall climb before wall run
-			if (!RunningOnLeft && !RunningOnRight && (CurrentClimbs < MaxClimbs || ClimbingFront))
+			if (GetWorld()->LineTraceSingleByChannel(FrontHit, FrontTraceStart, FrontTraceEnd, FrontTraceChannelProperty, FrontQueryParams))
 			{
-				if (GetWorld()->LineTraceSingleByChannel(FrontHit, FrontTraceStart, FrontTraceEnd, FrontTraceChannelProperty, FrontQueryParams))
+				if (!FrontHit.GetActor()->ActorHasTag("NoClimb"))
 				{
 					ClimbingFront = true;
 					if (CurrentClimbs == 0)
@@ -139,10 +139,10 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 					//lock player to Z axis
 					characterMovement->SetPlaneConstraintNormal(FVector(1, 1, 0));
 				}
-				else
-				{
-					StopClimbTimer();
-				}
+			}
+			else
+			{
+				StopClimbTimer();
 			}
 		}
 
