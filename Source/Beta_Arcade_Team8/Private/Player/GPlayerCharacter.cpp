@@ -146,24 +146,18 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 			}
 		}
 
-		if (!RunningOnLeft && CurrentClimbs < MaxClimbs)
+		if (!RunningOnLeft && !wallrunStopped)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
 			{
 				if (!JumpingOffWallRight)
 				{
 					//Touching Right wall in the air (and not jumping off)
-					if(!RunningOnRight)
-						StartClimbTimer();
+					if (!RunningOnRight)
+						StartWallrunTimer();
 
-					HasRunOnRight = true;
 					RunningOnRight = true;
-					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));
-
-					//count as a climb, so cant verticle climb without jumping
-					//Dont need this if we lock player cam input
-					/*if (CurrentClimbs == 0)
-						CurrentClimbs++;*/
+					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));// <- Matthews magic
 
 					//Set Rotation, movement, and gravity scale to stick to wall
 					SetActorRotation(FRotator(0, RightHit.Normal.Rotation().Yaw + 90, 0));
@@ -182,7 +176,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 			}
 		}
 
-		if (!RunningOnRight)
+		if (!RunningOnRight && !wallrunStopped)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(LeftHit, TraceStart, LeftTraceEnd, LeftTraceChannelProperty, LeftQueryParams))
 			{
@@ -191,12 +185,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 					//Touching Left wall in the air
 					HasRunOnRight = false;
 					RunningOnLeft = true;
-					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));
-
-					//count as a climb, so cant verticle climb without jumping
-					//Dont need this if we lock player cam input
-					/*if (CurrentClimbs == 0)
-						CurrentClimbs++;*/
+					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));// <- Matthews magic
 
 					//Set Rotation, movement, and gravity scale to stick to wall
 					SetActorRotation(FRotator(0, LeftHit.Normal.Rotation().Yaw - 90, 0));
@@ -253,7 +242,36 @@ void AGPlayerCharacter::StopClimbTimer()
 
 	CurrentClimbDuration = 0;
 	ClimbingFront = false;
+	PlayerOffWall();
+}
+
+void AGPlayerCharacter::StartWallrunTimer()
+{
+	print("start wallrun timer");
+	GetWorldTimerManager().SetTimer(WallrunTimerHandle, this, &AGPlayerCharacter::UpdateClimbTimer, WallrunUpdateTick, true, 0.0f);
+}
+
+void AGPlayerCharacter::UpdateWallrunTimer()
+{
+	CurrentWallrunDuration += WallrunUpdateTick;
+	if (CurrentWallrunDuration >= WallrunDuration)
+	{
+		StopWallrunTimer();
+	}
+}
+
+void AGPlayerCharacter::StopWallrunTimer()
+{
+	if (GetWorldTimerManager().IsTimerActive(ClimbTimerHandle))
+	{
+		print("stop WAallrun timer");
+		GetWorldTimerManager().ClearTimer(ClimbTimerHandle);
+	}
+
+	CurrentWallrunDuration = 0;
+	wallrunStopped = true;
 	RunningOnRight = false;
+	RunningOnLeft = false;
 	PlayerOffWall();
 }
 
