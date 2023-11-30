@@ -97,6 +97,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 
 	if (characterMovement->IsFalling())
 	{
+		//print("Is Falling");
 		//TomC - Setup left and right Line Traces for Wall Running
 		FHitResult RightHit;
 		FHitResult LeftHit;
@@ -150,7 +151,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
 			{
-				if (!JumpingOffWallRight)
+				if (!JumpingOffWallRight && CurrentClimbs < MaxClimbs)
 				{
 					//Touching Right wall in the air (and not jumping off)
 					if (!RunningOnRight)
@@ -182,8 +183,11 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 			{
 				if (!JumpingOffWallLeft && CurrentClimbs < MaxClimbs)
 				{
+					//Touching Right wall in the air (and not jumping off)
+					if (!RunningOnLeft)
+						StartWallrunTimer();
+
 					//Touching Left wall in the air
-					HasRunOnRight = false;
 					RunningOnLeft = true;
 					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));// <- Matthews magic
 
@@ -213,13 +217,13 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 	{
 		CurrentClimbs = 0;
 		HasRunOnRight = false;
+		wallrunStopped = false;
 	}
 
 }
 
 void AGPlayerCharacter::StartClimbTimer()
 {
-	print("start timer");
 	GetWorldTimerManager().SetTimer(ClimbTimerHandle, this, &AGPlayerCharacter::UpdateClimbTimer, ClimbUpdateTick, true, 0.0f);
 }
 
@@ -236,7 +240,6 @@ void AGPlayerCharacter::StopClimbTimer()
 {
 	if (GetWorldTimerManager().IsTimerActive(ClimbTimerHandle))
 	{
-		print("stop timer");
 		GetWorldTimerManager().ClearTimer(ClimbTimerHandle);
 	}
 
@@ -247,8 +250,7 @@ void AGPlayerCharacter::StopClimbTimer()
 
 void AGPlayerCharacter::StartWallrunTimer()
 {
-	print("start wallrun timer");
-	GetWorldTimerManager().SetTimer(WallrunTimerHandle, this, &AGPlayerCharacter::UpdateClimbTimer, WallrunUpdateTick, true, 0.0f);
+	GetWorldTimerManager().SetTimer(WallrunTimerHandle, this, &AGPlayerCharacter::UpdateWallrunTimer, WallrunUpdateTick, true, 0.0f);
 }
 
 void AGPlayerCharacter::UpdateWallrunTimer()
@@ -262,10 +264,9 @@ void AGPlayerCharacter::UpdateWallrunTimer()
 
 void AGPlayerCharacter::StopWallrunTimer()
 {
-	if (GetWorldTimerManager().IsTimerActive(ClimbTimerHandle))
+	if (GetWorldTimerManager().IsTimerActive(WallrunTimerHandle))
 	{
-		print("stop WAallrun timer");
-		GetWorldTimerManager().ClearTimer(ClimbTimerHandle);
+		GetWorldTimerManager().ClearTimer(WallrunTimerHandle);
 	}
 
 	CurrentWallrunDuration = 0;
