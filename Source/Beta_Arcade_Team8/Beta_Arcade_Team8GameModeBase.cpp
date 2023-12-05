@@ -19,6 +19,7 @@ ABeta_Arcade_Team8GameModeBase::ABeta_Arcade_Team8GameModeBase()
 void ABeta_Arcade_Team8GameModeBase::StartTimer()
 {
 	//Set a timer to call UpdateTimer every 1.0 seconds
+	m_currentTimeSecconds = 0;
 	GetWorldTimerManager().SetTimer(m_levelTimerHandle, this, &ABeta_Arcade_Team8GameModeBase::UpdateTimer, m_timerInterval, true, 0.0f);
 }
 

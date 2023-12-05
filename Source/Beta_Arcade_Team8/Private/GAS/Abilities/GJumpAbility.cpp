@@ -57,6 +57,10 @@ void UGJumpAbility::StartJump()
 			//reset climbs after jump, so player can climb after a jump from wallrun
 			PlayerCharacter->SetCurrentClimbs(0);
 			PlayerCharacter->LaunchCharacter(FVector(newVelocity.X, newVelocity.Y, WallJumpMultiplier), false, true);
+
+			//stop the wallrun timer after jump - allows player to chain wallruns
+			PlayerCharacter->StopWallrunTimer();
+			PlayerCharacter->SetWallrunStopped(false);
 		}
 			
 	}

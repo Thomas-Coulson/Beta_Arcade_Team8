@@ -38,6 +38,9 @@ public:
 	void SetLeftWallJump(bool jumping) { JumpingOffWallLeft = jumping; }
 	void SetRightWallJump(bool jumping) { JumpingOffWallRight = jumping; }
 	void SetCurrentClimbs(int newClimbs) { CurrentClimbs = newClimbs; }
+	void SetWallrunStopped(bool wallrunIsStopped) { wallrunStopped = wallrunIsStopped; }
+
+	void StopWallrunTimer();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -52,6 +55,9 @@ protected:
 	void StartClimbTimer();
 	void UpdateClimbTimer();
 	void StopClimbTimer();
+
+	void StartWallrunTimer();
+	void UpdateWallrunTimer();
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "InputSystem")
@@ -92,7 +98,7 @@ private:
 	float TraceLength = 50.0f;
 
 	UPROPERTY(EditAnywhere)
-	double FrontTraceOffset = 200.0f;
+	double FrontTraceOffset = 0.0f;
 
 	UPROPERTY(EditAnywhere)
 	float ClimbSpeed = 350.0f;
@@ -106,6 +112,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ClimbDuration = 1.0f;
 
+	UPROPERTY(EditAnywhere)
+	float WallrunDuration = 2.0f;
+
 
 	//Tomc- WallRun Variables
 	bool RunningOnLeft = false;
@@ -113,6 +122,12 @@ private:
 	bool JumpingOffWallLeft = false;
 	bool JumpingOffWallRight = false;
 	bool HasRunOnRight = false;
+
+	FTimerHandle WallrunTimerHandle;
+	float CurrentWallrunDuration = 0.0f;
+	float WallrunUpdateTick = 0.5f;
+
+	bool wallrunStopped = false;
 
 	//TomC Wall Climb Variables
 	bool ClimbingFront = false;
