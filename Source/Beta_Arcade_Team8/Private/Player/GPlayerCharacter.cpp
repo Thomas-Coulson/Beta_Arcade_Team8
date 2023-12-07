@@ -304,8 +304,7 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
-	//added test comment
-	//look player look when on a wall
+	//lock player look when on a wall
 	if (!IsPlayerOnWall())
 	{
 		const FVector2D LookVector = Value.Get<FVector2D>();
