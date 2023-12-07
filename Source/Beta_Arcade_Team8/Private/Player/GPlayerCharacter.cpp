@@ -289,6 +289,9 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
 	const FVector2D DirectionValue = Value.Get<FVector2D>();
 
+	//Add lerp to smoothly move from 0 to max speed (acceleration) rather than just move at max speed
+	//reset when stopped 
+	//also do this for left and right
 	if(GetController())
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
