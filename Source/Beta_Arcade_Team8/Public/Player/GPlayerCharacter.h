@@ -14,9 +14,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
-/**
- *
- */
+
 UCLASS()
 class BETA_ARCADE_TEAM8_API AGPlayerCharacter : public AGBaseCharacter
 {
@@ -39,6 +37,11 @@ public:
 	void SetRightWallJump(bool jumping) { JumpingOffWallRight = jumping; }
 	void SetCurrentClimbs(int newClimbs) { CurrentClimbs = newClimbs; }
 	void SetWallrunStopped(bool wallrunIsStopped) { wallrunStopped = wallrunIsStopped; }
+
+	void SetPreviousWall(AActor* prevWall) { PreviousWall = prevWall; }
+	FHitResult GetFrontHitResult() { return FrontHit; }
+	FHitResult GetLeftHitResult() { return LeftHit; }
+	FHitResult GetRightHitResult() { return RightHit; }
 
 	void StopWallrunTimer();
 	
@@ -122,6 +125,10 @@ private:
 	bool JumpingOffWallLeft = false;
 	bool JumpingOffWallRight = false;
 	bool HasRunOnRight = false;
+	AActor* PreviousWall;
+	FHitResult RightHit;
+	FHitResult LeftHit;
+	FHitResult FrontHit;
 
 	FTimerHandle WallrunTimerHandle;
 	float CurrentWallrunDuration = 0.0f;
