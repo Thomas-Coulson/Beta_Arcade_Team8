@@ -97,10 +97,9 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 
 	if (characterMovement->IsFalling())
 	{
+		//print("Is Falling");
 		//TomC - Setup left and right Line Traces for Wall Running
-		FHitResult RightHit;
-		FHitResult LeftHit;
-		FHitResult FrontHit;
+		
 
 		FVector TraceStart = GetActorLocation();
 		FVector FrontTraceStart = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - FrontTraceOffset);
@@ -123,7 +122,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(FrontHit, FrontTraceStart, FrontTraceEnd, FrontTraceChannelProperty, FrontQueryParams))
 			{
-				if (!FrontHit.GetActor()->ActorHasTag("NoClimb"))
+				if (!FrontHit.GetActor()->ActorHasTag("NoClimb") && FrontHit.GetActor() != PreviousWall)
 				{
 					ClimbingFront = true;
 					if (CurrentClimbs == 0)
@@ -150,7 +149,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
 			{
-				if (!JumpingOffWallRight)
+				if (!JumpingOffWallRight && CurrentClimbs < MaxClimbs && RightHit.GetActor() != PreviousWall)
 				{
 					//Touching Right wall in the air (and not jumping off)
 					if (!RunningOnRight)
@@ -180,10 +179,13 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(LeftHit, TraceStart, LeftTraceEnd, LeftTraceChannelProperty, LeftQueryParams))
 			{
-				if (!JumpingOffWallLeft && CurrentClimbs < MaxClimbs)
+				if (!JumpingOffWallLeft && CurrentClimbs < MaxClimbs && LeftHit.GetActor() != PreviousWall)
 				{
+					//Touching Right wall in the air (and not jumping off)
+					if (!RunningOnLeft)
+						StartWallrunTimer();
+
 					//Touching Left wall in the air
-					HasRunOnRight = false;
 					RunningOnLeft = true;
 					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));// <- Matthews magic
 
@@ -211,15 +213,16 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 	}
 	else
 	{
+		PreviousWall = NULL;
 		CurrentClimbs = 0;
 		HasRunOnRight = false;
+		wallrunStopped = false;
 	}
 
 }
 
 void AGPlayerCharacter::StartClimbTimer()
 {
-	print("start timer");
 	GetWorldTimerManager().SetTimer(ClimbTimerHandle, this, &AGPlayerCharacter::UpdateClimbTimer, ClimbUpdateTick, true, 0.0f);
 }
 
@@ -236,7 +239,6 @@ void AGPlayerCharacter::StopClimbTimer()
 {
 	if (GetWorldTimerManager().IsTimerActive(ClimbTimerHandle))
 	{
-		print("stop timer");
 		GetWorldTimerManager().ClearTimer(ClimbTimerHandle);
 	}
 
@@ -247,8 +249,7 @@ void AGPlayerCharacter::StopClimbTimer()
 
 void AGPlayerCharacter::StartWallrunTimer()
 {
-	print("start wallrun timer");
-	GetWorldTimerManager().SetTimer(WallrunTimerHandle, this, &AGPlayerCharacter::UpdateClimbTimer, WallrunUpdateTick, true, 0.0f);
+	GetWorldTimerManager().SetTimer(WallrunTimerHandle, this, &AGPlayerCharacter::UpdateWallrunTimer, WallrunUpdateTick, true, 0.0f);
 }
 
 void AGPlayerCharacter::UpdateWallrunTimer()
@@ -262,10 +263,9 @@ void AGPlayerCharacter::UpdateWallrunTimer()
 
 void AGPlayerCharacter::StopWallrunTimer()
 {
-	if (GetWorldTimerManager().IsTimerActive(ClimbTimerHandle))
+	if (GetWorldTimerManager().IsTimerActive(WallrunTimerHandle))
 	{
-		print("stop WAallrun timer");
-		GetWorldTimerManager().ClearTimer(ClimbTimerHandle);
+		GetWorldTimerManager().ClearTimer(WallrunTimerHandle);
 	}
 
 	CurrentWallrunDuration = 0;
