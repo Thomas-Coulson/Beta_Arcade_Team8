@@ -46,11 +46,13 @@ void UGJumpAbility::StartJump()
 			FVector newVelocity;
 			if (PlayerCharacter->PlayerOnRightWall())
 			{
+				PlayerCharacter->SetPreviousWall(PlayerCharacter->GetRightHitResult().GetActor());
 				PlayerCharacter->SetRightWallJump(true);
 				newVelocity = PlayerCharacter->GetActorRightVector() * -WallJumpMultiplier;
 			}
 			else if (PlayerCharacter->PlayerOnLeftWall())
 			{
+				PlayerCharacter->SetPreviousWall(PlayerCharacter->GetLeftHitResult().GetActor());
 				PlayerCharacter->SetLeftWallJump(true);
 				newVelocity = PlayerCharacter->GetActorRightVector() * WallJumpMultiplier;
 			}
