@@ -149,7 +149,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
 			{
-				if (!JumpingOffWallRight && CurrentClimbs < MaxClimbs && RightHit.GetActor() != PreviousWall)
+				if (!RightHit.GetActor()->ActorHasTag("NoClimb") && !JumpingOffWallRight && CurrentClimbs < MaxClimbs && RightHit.GetActor() != PreviousWall)
 				{
 					//Touching Right wall in the air (and not jumping off)
 					if (!RunningOnRight)
@@ -179,7 +179,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(LeftHit, TraceStart, LeftTraceEnd, LeftTraceChannelProperty, LeftQueryParams))
 			{
-				if (!JumpingOffWallLeft && CurrentClimbs < MaxClimbs && LeftHit.GetActor() != PreviousWall)
+				if (!LeftHit.GetActor()->ActorHasTag("NoClimb") && !JumpingOffWallLeft && CurrentClimbs < MaxClimbs && LeftHit.GetActor() != PreviousWall)
 				{
 					//Touching Right wall in the air (and not jumping off)
 					if (!RunningOnLeft)
@@ -284,6 +284,8 @@ void AGPlayerCharacter::InputAbilityTagReleased(FGameplayTag InputTag)
 {
 	AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 }
+
+
 
 void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
