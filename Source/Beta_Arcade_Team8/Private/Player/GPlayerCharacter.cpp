@@ -149,7 +149,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
 			{
-				if (!JumpingOffWallRight && CurrentClimbs < MaxClimbs && RightHit.GetActor() != PreviousWall)
+				if (!RightHit.GetActor()->ActorHasTag("NoClimb") && !JumpingOffWallRight && CurrentClimbs < MaxClimbs && RightHit.GetActor() != PreviousWall)
 				{
 					//Touching Right wall in the air (and not jumping off)
 					if (!RunningOnRight)
@@ -179,7 +179,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(LeftHit, TraceStart, LeftTraceEnd, LeftTraceChannelProperty, LeftQueryParams))
 			{
-				if (!JumpingOffWallLeft && CurrentClimbs < MaxClimbs && LeftHit.GetActor() != PreviousWall)
+				if (!LeftHit.GetActor()->ActorHasTag("NoClimb") && !JumpingOffWallLeft && CurrentClimbs < MaxClimbs && LeftHit.GetActor() != PreviousWall)
 				{
 					//Touching Right wall in the air (and not jumping off)
 					if (!RunningOnLeft)
@@ -285,10 +285,15 @@ void AGPlayerCharacter::InputAbilityTagReleased(FGameplayTag InputTag)
 	AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 }
 
+
+
 void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
 	const FVector2D DirectionValue = Value.Get<FVector2D>();
 
+	//Add lerp to smoothly move from 0 to max speed (acceleration) rather than just move at max speed
+	//reset when stopped 
+	//also do this for left and right
 	if(GetController())
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -304,8 +309,7 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
-	//added test comment
-	//look player look when on a wall
+	//lock player look when on a wall
 	if (!IsPlayerOnWall())
 	{
 		const FVector2D LookVector = Value.Get<FVector2D>();

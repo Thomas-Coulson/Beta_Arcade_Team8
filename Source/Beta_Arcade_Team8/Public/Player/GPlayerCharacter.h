@@ -50,7 +50,6 @@ protected:
 
 	void InputAbilityTagPressed(FGameplayTag InputTag);
 	void InputAbilityTagReleased(FGameplayTag InputTag);
-
 	void MoveForward(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
