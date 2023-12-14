@@ -285,20 +285,38 @@ void AGPlayerCharacter::InputAbilityTagReleased(FGameplayTag InputTag)
 	AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 }
 
+float AGPlayerCharacter::LerpMovement()
+{
+	return FMath::Lerp(0.0f, 1.0f, moveLerpAlpha);
+}
+
 void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
 	const FVector2D DirectionValue = Value.Get<FVector2D>();
-
-	if(GetController())
+	//Add lerp to smoothly move from 0 to max speed (acceleration) rather than just move at max speed
+	//reset when stopped 
+	//also do this for left and right
+	if (GetController())
 	{
+
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 
 		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(ForwardVector, DirectionValue.Y);
+		AddMovementInput(ForwardVector, DirectionValue.Y * LerpMovement());
 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(RightDirection, DirectionValue.X);
+		AddMovementInput(RightDirection, DirectionValue.X * LerpMovement());
+
+		//will accellerate character when holding move input (currently doesnt reset when let go though)
+		if (moveLerpAlpha < 1.0f)
+		{
+			moveLerpAlpha += playerAcceleration;
+		}
+		else
+		{
+			moveLerpAlpha = 1.0f;
+		}
 	}
 }
 

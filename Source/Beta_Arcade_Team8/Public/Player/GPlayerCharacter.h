@@ -50,7 +50,7 @@ protected:
 
 	void InputAbilityTagPressed(FGameplayTag InputTag);
 	void InputAbilityTagReleased(FGameplayTag InputTag);
-
+	float LerpMovement();
 	void MoveForward(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
@@ -118,6 +118,10 @@ private:
 	UPROPERTY(EditAnywhere)
 	float WallrunDuration = 2.0f;
 
+	UPROPERTY(EditAnywhere)
+	float playerAcceleration = 0.005;
+
+	float moveLerpAlpha = 0;
 
 	//Tomc- WallRun Variables
 	bool RunningOnLeft = false;
