@@ -14,8 +14,9 @@ class BETA_ARCADE_TEAM8_API AGBaseCharacter : public ACharacter, public IAbility
 
 public:
 	// Sets default values for this character's properties
-	AGBaseCharacter();
+	AGBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
+	UFUNCTION(BlueprintCallable)
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:

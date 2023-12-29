@@ -17,7 +17,7 @@
 #define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::Green,text)
 #define printFString(text, fstring) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT(text), fstring))
 
-AGPlayerCharacter::AGPlayerCharacter()
+AGPlayerCharacter::AGPlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
