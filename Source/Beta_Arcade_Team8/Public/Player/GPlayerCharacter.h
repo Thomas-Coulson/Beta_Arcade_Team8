@@ -21,7 +21,7 @@ class BETA_ARCADE_TEAM8_API AGPlayerCharacter : public AGBaseCharacter
 	GENERATED_BODY()
 
 public:
-	AGPlayerCharacter();
+	AGPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void Tick(float DeltaTime) override;
 
