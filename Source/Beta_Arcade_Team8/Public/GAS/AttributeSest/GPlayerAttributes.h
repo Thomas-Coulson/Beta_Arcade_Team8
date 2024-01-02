@@ -29,5 +29,9 @@ public:
 	FGameplayAttributeData ZVelocity = 500.f;
 	ATTRIBUTE_ACCESSORS(UGPlayerAttributes, ZVelocity)
 
+	UPROPERTY(BlueprintReadOnly, Category = "SpeedMultiplier")
+	FGameplayAttributeData SpeedMultiplier = 1.0f;
+	ATTRIBUTE_ACCESSORS(UGPlayerAttributes, SpeedMultiplier)
+
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 };

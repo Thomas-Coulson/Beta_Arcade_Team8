@@ -17,7 +17,7 @@
 #define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0.5, FColor::Green,text)
 #define printFString(text, fstring) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT(text), fstring))
 
-AGPlayerCharacter::AGPlayerCharacter()
+AGPlayerCharacter::AGPlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -153,7 +153,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
 			{
-				if (!JumpingOffWallRight && CurrentClimbs < MaxClimbs && RightHit.GetActor() != PreviousWall)
+				if (!RightHit.GetActor()->ActorHasTag("NoClimb") && !JumpingOffWallRight && CurrentClimbs < MaxClimbs && RightHit.GetActor() != PreviousWall)
 				{
 					//Touching Right wall in the air (and not jumping off)
 					if (!RunningOnRight)
@@ -183,7 +183,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(LeftHit, TraceStart, LeftTraceEnd, LeftTraceChannelProperty, LeftQueryParams))
 			{
-				if (!JumpingOffWallLeft && CurrentClimbs < MaxClimbs && LeftHit.GetActor() != PreviousWall)
+				if (!LeftHit.GetActor()->ActorHasTag("NoClimb") && !JumpingOffWallLeft && CurrentClimbs < MaxClimbs && LeftHit.GetActor() != PreviousWall)
 				{
 					//Touching Right wall in the air (and not jumping off)
 					if (!RunningOnLeft)
@@ -339,6 +339,7 @@ float AGPlayerCharacter::LerpMovement()
 	return FMath::Lerp(0.0f, 1.0f, moveLerpAlpha);
 }
 
+
 void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
 	//const FVector2D DirectionValue = Value.Get<FVector2D>();
@@ -346,7 +347,7 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 	//Add lerp to smoothly move from 0 to max speed (acceleration) rather than just move at max speed
 	//reset when stopped 
 	//also do this for left and right
-	if (GetController())
+	if(GetController())
 	{
 		//isMoving = true;
 		ResetAccTimer();
@@ -355,11 +356,9 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 
 		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		//AddMovementInput(ForwardVector, DirectionValue.Y * LerpMovement());
 		AddMovementInput(ForwardVector, CurrentDirectionValue.Y * LerpMovement());
 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		//AddMovementInput(RightDirection, DirectionValue.X * LerpMovement());
 		AddMovementInput(RightDirection, CurrentDirectionValue.X * LerpMovement());
 
 		//will accellerate character when holding move input (currently doesnt reset when let go though)
@@ -370,15 +369,13 @@ void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 		else
 		{
 			moveLerpAlpha = 1.0f;
-			//print("Max Speed!");
 		}
 	}
 }
 
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
-	//added test comment
-	//look player look when on a wall
+	//lock player look when on a wall
 	if (!IsPlayerOnWall())
 	{
 		const FVector2D LookVector = Value.Get<FVector2D>();
