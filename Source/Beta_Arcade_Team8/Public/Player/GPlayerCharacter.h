@@ -50,6 +50,7 @@ protected:
 
 	void InputAbilityTagPressed(FGameplayTag InputTag);
 	void InputAbilityTagReleased(FGameplayTag InputTag);
+	float LerpMovement();
 	void MoveForward(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
@@ -60,6 +61,10 @@ protected:
 
 	void StartWallrunTimer();
 	void UpdateWallrunTimer();
+
+	void StartAccTimer();
+	void UpdateAccTimer();
+	void ResetAccTimer();
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "InputSystem")
@@ -117,6 +122,17 @@ private:
 	UPROPERTY(EditAnywhere)
 	float WallrunDuration = 2.0f;
 
+	UPROPERTY(EditAnywhere)
+	float playerAcceleration = 0.005;
+
+	float moveLerpAlpha = 0;
+	bool isMoving = false;
+
+	FTimerHandle AccelerationTimerHandle;
+	float timeSinceLastMoveInput = 0;
+	float AccUpdateTick = 0.001f;
+
+	FVector2D CurrentDirectionValue;
 
 	//Tomc- WallRun Variables
 	bool RunningOnLeft = false;
