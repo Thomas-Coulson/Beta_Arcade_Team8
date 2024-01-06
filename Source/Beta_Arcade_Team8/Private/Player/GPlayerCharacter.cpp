@@ -13,7 +13,11 @@
 #include "Input/G_EIC.h"
 #include "Player/GPlayerController.h"
 
-AGPlayerCharacter::AGPlayerCharacter()
+//shortcus for logging debug outputs
+#define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 0.5, FColor::Green,text)
+#define printFString(text, fstring) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT(text), fstring))
+
+AGPlayerCharacter::AGPlayerCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -83,6 +87,8 @@ void AGPlayerCharacter::BeginPlay()
 
 	//TomC - allow plane constraints for wall running
 	GetCharacterMovement()->SetPlaneConstraintEnabled(true);
+
+	StartAccTimer();
 }
 
 void AGPlayerCharacter::Tick(float DeltaTime)
@@ -91,12 +97,13 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 
 	UCharacterMovementComponent* characterMovement = GetCharacterMovement();
 
+	//isMoving = false;
+
 	if (characterMovement->IsFalling())
 	{
+		//print("Is Falling");
 		//TomC - Setup left and right Line Traces for Wall Running
-		FHitResult RightHit;
-		FHitResult LeftHit;
-		FHitResult FrontHit;
+		
 
 		FVector TraceStart = GetActorLocation();
 		FVector FrontTraceStart = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - FrontTraceOffset);
@@ -113,44 +120,47 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		FCollisionQueryParams FrontQueryParams;
 		FrontQueryParams.AddIgnoredActor(this);
 
+
 		//test front wall climb before wall run
 		if (!RunningOnLeft && !RunningOnRight && (CurrentClimbs < MaxClimbs || ClimbingFront))
 		{
 			if (GetWorld()->LineTraceSingleByChannel(FrontHit, FrontTraceStart, FrontTraceEnd, FrontTraceChannelProperty, FrontQueryParams))
 			{
-				ClimbingFront = true;
-				if (CurrentClimbs == 0)
+				if (!FrontHit.GetActor()->ActorHasTag("NoClimb") && FrontHit.GetActor() != PreviousWall)
 				{
-					CurrentClimbs++;
-					StartClimbTimer();
+					ClimbingFront = true;
+					if (CurrentClimbs == 0)
+					{
+						CurrentClimbs++;
+						StartClimbTimer();
+					}
+
+					//Set Rotation, movement, and gravity scale to stick to wall
+					SetActorRotation(FRotator(0, FrontHit.Normal.Rotation().Yaw + 180, 0));
+					characterMovement->Velocity = FVector(0, 0, GetActorUpVector().Z * 500);
+					characterMovement->GravityScale = 0;
+					//lock player to Z axis
+					characterMovement->SetPlaneConstraintNormal(FVector(1, 1, 0));
 				}
-					
-				//Set Rotation, movement, and gravity scale to stick to wall
-				SetActorRotation(FRotator(0, FrontHit.Normal.Rotation().Yaw + 180, 0));
-				characterMovement->Velocity = FVector(0, 0, GetActorUpVector().Z * 500);
-				characterMovement->GravityScale = 0;
-				//lock player to Z axis
-				characterMovement->SetPlaneConstraintNormal(FVector(1, 1, 0));
 			}
 			else
 			{
-				StopClimb();
+				StopClimbTimer();
 			}
 		}
 
-		if (!RunningOnLeft)
+		if (!RunningOnLeft && !wallrunStopped)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(RightHit, TraceStart, RightTraceEnd, RightTraceChannelProperty, RightQueryParams))
 			{
-				if (!JumpingOffWallRight)
+				if (!RightHit.GetActor()->ActorHasTag("NoClimb") && !JumpingOffWallRight && CurrentClimbs < MaxClimbs && RightHit.GetActor() != PreviousWall)
 				{
 					//Touching Right wall in the air (and not jumping off)
-					RunningOnRight = true;
-					JumpMaxCount = 2;
+					if (!RunningOnRight)
+						StartWallrunTimer();
 
-					//count as a climb, so cant verticle climb without jumping
-					if (CurrentClimbs == 0)
-						CurrentClimbs++;
+					RunningOnRight = true;
+					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));// <- Matthews magic
 
 					//Set Rotation, movement, and gravity scale to stick to wall
 					SetActorRotation(FRotator(0, RightHit.Normal.Rotation().Yaw + 90, 0));
@@ -160,11 +170,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 					//lock player to Z axis
 					characterMovement->SetPlaneConstraintNormal(FVector(0, 0, 1));
 				}
-				else
-				{
-					JumpMaxCount = 1;
-				}
-				
 			}
 			else
 			{
@@ -174,19 +179,19 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 			}
 		}
 
-		if (!RunningOnRight)
+		if (!RunningOnRight && !wallrunStopped)
 		{
 			if (GetWorld()->LineTraceSingleByChannel(LeftHit, TraceStart, LeftTraceEnd, LeftTraceChannelProperty, LeftQueryParams))
 			{
-				if (!JumpingOffWallLeft)
+				if (!LeftHit.GetActor()->ActorHasTag("NoClimb") && !JumpingOffWallLeft && CurrentClimbs < MaxClimbs && LeftHit.GetActor() != PreviousWall)
 				{
+					//Touching Right wall in the air (and not jumping off)
+					if (!RunningOnLeft)
+						StartWallrunTimer();
+
 					//Touching Left wall in the air
 					RunningOnLeft = true;
-					JumpMaxCount = 2;
-
-					//count as a climb, so cant verticle climb without jumping
-					if (CurrentClimbs == 0)
-						CurrentClimbs++;
+					AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));// <- Matthews magic
 
 					//Set Rotation, movement, and gravity scale to stick to wall
 					SetActorRotation(FRotator(0, LeftHit.Normal.Rotation().Yaw - 90, 0));
@@ -195,10 +200,6 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 
 					//lock player to Z axis
 					characterMovement->SetPlaneConstraintNormal(FVector(0, 0, 1));
-				}
-				else
-				{
-					JumpMaxCount = 1;
 				}
 			}
 			else
@@ -216,8 +217,39 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 	}
 	else
 	{
+		PreviousWall = NULL;
 		CurrentClimbs = 0;
+		HasRunOnRight = false;
+		wallrunStopped = false;
 	}
+
+	//detect if pplayer has stopped moving
+	if (timeSinceLastMoveInput >= 0.001f)
+	{
+		float accMultiplier = 2.0f;
+
+		//keep moving player to give -acceleration affect
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
+
+		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(ForwardVector, CurrentDirectionValue.Y * LerpMovement());
+
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(RightDirection, CurrentDirectionValue.X * LerpMovement());
+
+		//decrease player speed over time
+		if (moveLerpAlpha < 0.0f)
+		{
+			moveLerpAlpha = 0;
+		}
+		else
+		{
+			moveLerpAlpha -= playerAcceleration * accMultiplier;
+		}
+	}
+	
+
 
 }
 
@@ -231,11 +263,11 @@ void AGPlayerCharacter::UpdateClimbTimer()
 	CurrentClimbDuration += ClimbUpdateTick;
 	if (CurrentClimbDuration >= ClimbDuration)
 	{
-		StopClimb();
+		StopClimbTimer();
 	}
 }
 
-void AGPlayerCharacter::StopClimb()
+void AGPlayerCharacter::StopClimbTimer()
 {
 	if (GetWorldTimerManager().IsTimerActive(ClimbTimerHandle))
 	{
@@ -245,6 +277,51 @@ void AGPlayerCharacter::StopClimb()
 	CurrentClimbDuration = 0;
 	ClimbingFront = false;
 	PlayerOffWall();
+}
+
+void AGPlayerCharacter::StartWallrunTimer()
+{
+	GetWorldTimerManager().SetTimer(WallrunTimerHandle, this, &AGPlayerCharacter::UpdateWallrunTimer, WallrunUpdateTick, true, 0.0f);
+}
+
+void AGPlayerCharacter::UpdateWallrunTimer()
+{
+	CurrentWallrunDuration += WallrunUpdateTick;
+	if (CurrentWallrunDuration >= WallrunDuration)
+	{
+		StopWallrunTimer();
+	}
+}
+
+void AGPlayerCharacter::StopWallrunTimer()
+{
+	if (GetWorldTimerManager().IsTimerActive(WallrunTimerHandle))
+	{
+		GetWorldTimerManager().ClearTimer(WallrunTimerHandle);
+	}
+
+	CurrentWallrunDuration = 0;
+	wallrunStopped = true;
+	RunningOnRight = false;
+	RunningOnLeft = false;
+	PlayerOffWall();
+}
+
+void AGPlayerCharacter::StartAccTimer()
+{
+	GetWorldTimerManager().SetTimer(AccelerationTimerHandle, this, &AGPlayerCharacter::UpdateAccTimer, AccUpdateTick, true, 0.0f);
+}
+
+void AGPlayerCharacter::UpdateAccTimer()
+{
+	timeSinceLastMoveInput += AccUpdateTick;
+}
+
+void AGPlayerCharacter::ResetAccTimer()
+{
+	timeSinceLastMoveInput = 0;
+	GetWorldTimerManager().ClearTimer(AccelerationTimerHandle);
+	StartAccTimer();
 }
 
 void AGPlayerCharacter::InputAbilityTagPressed(FGameplayTag InputTag)
@@ -257,26 +334,48 @@ void AGPlayerCharacter::InputAbilityTagReleased(FGameplayTag InputTag)
 	AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 }
 
+float AGPlayerCharacter::LerpMovement()
+{
+	return FMath::Lerp(0.0f, 1.0f, moveLerpAlpha);
+}
+
+
 void AGPlayerCharacter::MoveForward(const FInputActionValue& Value)
 {
-	const FVector2D DirectionValue = Value.Get<FVector2D>();
-
+	//const FVector2D DirectionValue = Value.Get<FVector2D>();
+	CurrentDirectionValue = Value.Get<FVector2D>();
+	//Add lerp to smoothly move from 0 to max speed (acceleration) rather than just move at max speed
+	//reset when stopped 
+	//also do this for left and right
 	if(GetController())
 	{
+		//isMoving = true;
+		ResetAccTimer();
+
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 
 		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(ForwardVector, DirectionValue.Y);
+		AddMovementInput(ForwardVector, CurrentDirectionValue.Y * LerpMovement());
 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(RightDirection, DirectionValue.X);
+		AddMovementInput(RightDirection, CurrentDirectionValue.X * LerpMovement());
+
+		//will accellerate character when holding move input (currently doesnt reset when let go though)
+		if (moveLerpAlpha < 1.0f)
+		{
+			moveLerpAlpha += playerAcceleration;
+		}
+		else
+		{
+			moveLerpAlpha = 1.0f;
+		}
 	}
 }
 
 void AGPlayerCharacter::Look(const FInputActionValue& Value)
 {
-	//look player look when on a wall
+	//lock player look when on a wall
 	if (!IsPlayerOnWall())
 	{
 		const FVector2D LookVector = Value.Get<FVector2D>();
@@ -300,4 +399,5 @@ void AGPlayerCharacter::PlayerOffWall()
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	MovementComponent->GravityScale = 1.4;
 	MovementComponent->SetPlaneConstraintNormal(FVector(0, 0, 0));
+	AbilitySystemComponent->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override"));
 }

@@ -18,7 +18,7 @@ bool UGJumpAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	if (PlayerCharacter && Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
-		if (PlayerCharacter->CanJump())
+		if (PlayerCharacter->CanJump() || PlayerCharacter->GetAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("Ability.Jump.Override")))
 		{
 			return true;
 		}
@@ -46,17 +46,23 @@ void UGJumpAbility::StartJump()
 			FVector newVelocity;
 			if (PlayerCharacter->PlayerOnRightWall())
 			{
+				PlayerCharacter->SetPreviousWall(PlayerCharacter->GetRightHitResult().GetActor());
 				PlayerCharacter->SetRightWallJump(true);
 				newVelocity = PlayerCharacter->GetActorRightVector() * -WallJumpMultiplier;
 			}
 			else if (PlayerCharacter->PlayerOnLeftWall())
 			{
+				PlayerCharacter->SetPreviousWall(PlayerCharacter->GetLeftHitResult().GetActor());
 				PlayerCharacter->SetLeftWallJump(true);
 				newVelocity = PlayerCharacter->GetActorRightVector() * WallJumpMultiplier;
 			}
 			//reset climbs after jump, so player can climb after a jump from wallrun
 			PlayerCharacter->SetCurrentClimbs(0);
 			PlayerCharacter->LaunchCharacter(FVector(newVelocity.X, newVelocity.Y, WallJumpMultiplier), false, true);
+
+			//stop the wallrun timer after jump - allows player to chain wallruns
+			PlayerCharacter->StopWallrunTimer();
+			PlayerCharacter->SetWallrunStopped(false);
 		}
 			
 	}
