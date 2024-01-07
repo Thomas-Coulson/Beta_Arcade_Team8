@@ -226,17 +226,7 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 	//detect if pplayer has stopped moving
 	if (timeSinceLastMoveInput >= 0.001f)
 	{
-		float accMultiplier = 2.0f;
-
-		//keep moving player to give -acceleration affect
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
-
-		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(ForwardVector, CurrentDirectionValue.Y * LerpMovement());
-
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(RightDirection, CurrentDirectionValue.X * LerpMovement());
+		float accMultiplier = 3.0f;
 
 		//decrease player speed over time
 		if (moveLerpAlpha < 0.0f)
@@ -247,10 +237,19 @@ void AGPlayerCharacter::Tick(float DeltaTime)
 		{
 			moveLerpAlpha -= playerAcceleration * accMultiplier;
 		}
+
+		//keep moving player to give -acceleration affect
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
+
+		const FVector ForwardVector = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(ForwardVector, CurrentDirectionValue.Y * LerpMovement());
+
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(RightDirection, CurrentDirectionValue.X * LerpMovement());
+		
 	}
 	
-
-
 }
 
 void AGPlayerCharacter::StartClimbTimer()

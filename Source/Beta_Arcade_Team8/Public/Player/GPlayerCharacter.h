@@ -30,9 +30,18 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 
 	//TomC - Variable Access for wall running
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool IsPlayerOnWall() { return RunningOnLeft || RunningOnRight || ClimbingFront; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool PlayerOnLeftWall() { return RunningOnLeft; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool PlayerOnRightWall() { return RunningOnRight; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool PlayerClimbing() { return ClimbingFront; }
+
 	void SetLeftWallJump(bool jumping) { JumpingOffWallLeft = jumping; }
 	void SetRightWallJump(bool jumping) { JumpingOffWallRight = jumping; }
 	void SetCurrentClimbs(int newClimbs) { CurrentClimbs = newClimbs; }
