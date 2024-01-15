@@ -33,5 +33,5 @@ public:
 	FGameplayAttributeData SpeedMultiplier = 1.0f;
 	ATTRIBUTE_ACCESSORS(UGPlayerAttributes, SpeedMultiplier)
 
-	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 };
